@@ -2,9 +2,7 @@
 blueten = imread('blueten.jpg');
 doubleBild = double(blueten);
 doubleBild = doubleBild ./ 255;
-%max(doubleBild,[],'all')
 %% 1b)
-figure
 imhist(doubleBild)
 title('Histogramm');
 % Histogram red
@@ -13,7 +11,6 @@ redhist = imhist(doubleBild(:,:,1));
 greenhist = imhist(doubleBild(:,:,2));
 % Histogram blue
 bluehist = imhist(doubleBild(:,:,3));
-figure
 plot(redhist, 'r');
 hold on
 plot(greenhist, 'g');
@@ -23,12 +20,11 @@ plot(bluehist, 'b');
 % Histogramm in den dunklen Regionen vorhanden sind.
 bluetenhsi=rgb2hsi(blueten);
 helligkeithist = imhist(bluetenhsi(:,:,3));
-plot(helligkeithist, 'black');
-figure
+plot(helligkeithist, 'black'); figure
 imshow(doubleBild);
 % Vermutung war richtig
 showQuadView(doubleBild, doubleBild(:,:,1), doubleBild(:,:,2), doubleBild(:,:,3));
-showQuadView(bluetenhsi,bluetenhsi(:,:,1),bluetenhsi(:,:,2),bluetenhsi(:,:,3))
+showQuadView(bluetenhsi,bluetenhsi(:,:,1),bluetenhsi(:,:,2),bluetenhsi(:,:,3)); 
 %% 1d)
 minhelligkeit = min(bluetenhsi(:,:,3),[],'all')
 maxhelligkeit = max(bluetenhsi(:,:,3),[],'all')
@@ -44,48 +40,65 @@ imhist(bluetenhsi(:,:,3))
 % bewegt.
 %% 1g)
 P = imhist(bluetenhsi(:,:,3));
+% 0 ausschließen und Nomierung
 P = P(P>0)./sum(P);
 entropie = -sum((P .* log2(P)))
 %% 2a)
+bluetenhsi_neu = bluetenhsi;
 intensity = bluetenhsi(:,:,3);
-imshow(intensity);
+imshow(intensity); figure
 grey = imhist(bluetenhsi(:,:,3));
 s = stretchlim(bluetenhsi(:,:,3))
 gmax = s(2,1);
 gmin = s(1,1);
-intensitynei = (intensity - gmin) .* ((1-0)/(gmax-gmin)) + 0;
-figure
-imshow(intensityneu);
-figure
-histogramintensityneu = imhist(intensityneu);
-plot(grey, 'green');
-hold on
-plot(histogramintensityneu, 'blue');
-entropy(intensityneu)
-%Transferfunktion funktioniert nicht richtig
+intensity_spreiz = (intensity - gmin) .* ((1-0)/(gmax-gmin)) + 0;
+imshow(intensity_spreiz); figure
+% neues RGB-Bild
+bluetenhsi_neu(:,:,3) = intensity_spreiz;
+bluetenrgb = hsi2rgb(bluetenhsi_neu);
+imshow(bluetenrgb); figure
 %% 2b)
-imshow(intensity);
-gamma = 2;
-intensityneu = 1.0 .* (intensity/1.0).^gamma;
-figure
-plot(imhist(intensity), 'red')
-hold on
-plot (imhist(intensityneu), 'yellow');
-figure
-imshow(intensityneu);
+imshow(intensity);figure
+gamma = 0.5;
+intensity_gamma = 1.0 .* (intensity/1.0).^gamma;
+imshow(intensity_gamma); figure
+% neues RGB-Bild
+bluetenhsi_neu(:,:,3) = intensity_gamma;
+bluetenrgb = hsi2rgb(bluetenhsi_neu);
+imshow(bluetenrgb); figure
 %% 2c)
-equalization=histeq(g);
-plot(equalization, 'red');
-imshow(equalization);
-bluetenhsi_neu= adapthisteq(bluetenhsi(:,:,3));
-imshow(bluetenhsi_neu);
-imshow(bluetenhsi(:,:,3));
-% TODO: mit AquaTermi_lowcontrast
+intensity_histeq=histeq(intensity);
+imshow(intensity_histeq);figure
+intensity_lin= adapthisteq(intensity);
+imshow(intensity_lin);figure
+imshow(intensity); figure
+% neues RGB-Bild
+bluetenhsi_neu(:,:,3) = intensity_lin;
+bluetenrgb = hsi2rgb(bluetenhsi_neu);
+imshow(bluetenrgb); figure
+% neues RGB-Bild
+bluetenhsi_neu(:,:,3) = intensity_histeq;
+bluetenrgb = hsi2rgb(bluetenhsi_neu);
+imshow(bluetenrgb); figure
+%% 2c) Optional: mit AquaTermi_lowcontrast
+aquatermi = imread('AquaTermi_lowcontrast.jpg');
+aquatermi_hsi=rgb2hsi(aquatermi);
+aquatermi_i = aquatermi_hsi(:,:,3);
+imshow(aquatermi_i);figure
+equalization_aqua=histeq(aquatermi_i);
+imshow(equalization_aqua);figure
+aquatermi_i_neu= adapthisteq(aquatermi_i);
+imshow(aquatermi_i_neu);figure
 %% 2d)
-% Berechung der Entropie nach der Gamma-Korrektur und
-% Histogrammlinearisierung
+% Entropie nach der Gamma-Korrektur
+entropy_gamma = entropy(intensity_gamma)
+% Entropie nach der Histogrammlinearisierung
+entropy_histeq = entropy(intensity_histeq)
+entropy_lin = entropy(intensity_lin)
 %% 2e)
-% Optional: Lassen Sie sich die Histogramme des I-Kanals vor und nach den drei verschiedenen
-% Kontrastkorrekturen mit der Funktion imhist(I) anzeigen. Die Anzahl der verwendeten
-% Intervalle lässt sich einstellen: imhist(I,n). Testen Sie auch n=10. Übernehmen Sie je ein
-% Histogramm in die Auswertung
+% Histogram nach der Histogrammspreizung
+hist_before = imhist(intensity,20);
+hist_spreiz = imhist(intensity_spreiz,20);
+plot(hist_before, 'green');
+hold on
+plot(hist_spreiz, 'blue');
